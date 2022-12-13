@@ -6,8 +6,7 @@ import path from "path";
  */
 
 export function mergeArrays<T>(array1: T[], array2: T[]): T[] {
-
-	return [...new Set([...array1, ...array2])]
+	return [...new Set([...array1, ...array2])];
 }
 
 /**
@@ -16,21 +15,17 @@ export function mergeArrays<T>(array1: T[], array2: T[]): T[] {
  * by predicate as true, the second as false.
  */
 export function separateArray<T>(array: T[], predicate: (element: T) => boolean): [T[], T[]] {
-
 	const nextIteration = (array: T[], onTrue: T[], onFalse: T[]): [T[], T[]] => {
+		if (array.length === 0) return [onTrue, onFalse];
 
-		if (array.length === 0)
-			return [onTrue, onFalse]
+		const [head, ...tail] = array;
 
-		const [head, ...tail] = array
+		if (predicate(head)) return nextIteration(tail, [...onTrue, head], onFalse);
 
-		if (predicate(head))
-			return nextIteration(tail, [...onTrue, head], onFalse)
+		return nextIteration(tail, onTrue, [...onFalse, head]);
+	};
 
-		return nextIteration(tail, onTrue, [...onFalse, head])
-	}
-
-	return nextIteration(array, [], [])
+	return nextIteration(array, [], []);
 }
 
 /**
@@ -46,8 +41,7 @@ export function isEnum(type: ts.Type): boolean {
  */
 
 export function isFunctionType(type: ts.Type): boolean {
-
-	return type.getCallSignatures().length !== 0
+	return type.getCallSignatures().length !== 0;
 }
 
 /**
@@ -55,7 +49,7 @@ export function isFunctionType(type: ts.Type): boolean {
  */
 
 export function isTupleType(type: ts.Type, typeChecker: ts.TypeChecker): type is ts.TupleType {
-	return (<any>typeChecker).isTupleType(type)
+	return (<any>typeChecker).isTupleType(type);
 }
 
 /**
@@ -63,8 +57,7 @@ export function isTupleType(type: ts.Type, typeChecker: ts.TypeChecker): type is
  */
 
 export function isArrayType(type: ts.Type, typeChecker: ts.TypeChecker): type is ts.GenericType {
-
-	return (<any>typeChecker).isArrayType(type)
+	return (<any>typeChecker).isArrayType(type);
 }
 
 /**
@@ -72,7 +65,7 @@ export function isArrayType(type: ts.Type, typeChecker: ts.TypeChecker): type is
  */
 
 export function isMapType(type: ts.Type): type is ts.GenericType {
-	return type.symbol?.getName() === "Map"
+	return type.symbol?.getName() === "Map";
 }
 
 /**
@@ -80,7 +73,7 @@ export function isMapType(type: ts.Type): type is ts.GenericType {
  */
 
 export function isBrickColorType(type: ts.Type): type is ts.GenericType {
-	return type.symbol?.getName() === "BrickColor"
+	return type.symbol?.getName() === "BrickColor";
 }
 
 /**
@@ -92,8 +85,7 @@ export function isBrickColorType(type: ts.Type): type is ts.GenericType {
  */
 
 export function isObjectType(type: ts.Type): type is ts.ObjectType {
-
-	return type.symbol?.getName() === "__type"
+	return type.symbol?.getName() === "__type";
 }
 
 /**
@@ -101,40 +93,38 @@ export function isObjectType(type: ts.Type): type is ts.ObjectType {
  */
 
 export function isOptionalPropertyDeclaration(prop: ts.Symbol): boolean {
+	const property = prop.valueDeclaration as ts.PropertyDeclaration;
 
-	const property = prop.valueDeclaration as ts.PropertyDeclaration
-
-	return property.questionToken !== undefined
+	return property.questionToken !== undefined;
 }
-
 
 /**
  * Checks if type is a literal
  */
 
 export function isLiteral(typeChecker: ts.TypeChecker): (type: ts.Type) => boolean {
-	return (type: ts.Type): boolean => type.isLiteral() || ["true", "false"].includes(typeChecker.typeToString(type))
+	return (type: ts.Type): boolean => type.isLiteral() || ["true", "false"].includes(typeChecker.typeToString(type));
 }
 
 export function isCustomEnum(type: ts.Type) {
-    return type.symbol?.valueDeclaration?.kind === ts.SyntaxKind.EnumDeclaration
+	return type.symbol?.valueDeclaration?.kind === ts.SyntaxKind.EnumDeclaration;
 }
 
 /**
  * Extracts property type and name from ts.Symbol
  */
 
-export function extractProperty(prop: ts.Symbol, typeChecker: ts.TypeChecker): { name: string, type: ts.Type } {
+export function extractProperty(prop: ts.Symbol, typeChecker: ts.TypeChecker): { name: string; type: ts.Type } {
+	const declaration = prop.valueDeclaration;
 
-	const declaration = prop.valueDeclaration
+	const type =
+		(<any>prop).type === undefined
+			? typeChecker.getTypeFromTypeNode((<any>declaration).type)
+			: (<any>prop).type.target ?? (<any>prop).type;
 
-	const type = (<any>prop).type === undefined
-		? typeChecker.getTypeFromTypeNode((<any>declaration).type)
-		: (<any>prop).type.target ?? (<any>prop).type
+	const name = String(prop.escapedName);
 
-	const name = String(prop.escapedName)
-
-	return { name, type }
+	return { name, type };
 }
 
 /**
@@ -144,11 +134,9 @@ export function extractProperty(prop: ts.Symbol, typeChecker: ts.TypeChecker): {
  */
 
 export function buildPropertyName(name: string): string | ts.StringLiteral {
+	if (name.match(/^[a-zA-Z_]+[\w_]+$/) !== null) return name;
 
-	if (name.match(/^[a-zA-Z_]+[\w_]+$/) !== null)
-		return name
-
-	return ts.factory.createStringLiteral(name)
+	return ts.factory.createStringLiteral(name);
 }
 
 /**
@@ -156,14 +144,14 @@ export function buildPropertyName(name: string): string | ts.StringLiteral {
  */
 
 type MappingFunction = {
-	(node: ts.Node, program: ts.Program): [ts.Node, boolean]
-}
+	(node: ts.Node, program: ts.Program): [ts.Node, boolean];
+};
 
 /**
  * Predicate accepts ts.Node or it"s subtypes
  */
 
-type NodePredicate<T extends ts.Node = ts.Node> = (node: T) => boolean
+type NodePredicate<T extends ts.Node = ts.Node> = (node: T) => boolean;
 
 /**
  * Returns mapping function that replaces
@@ -172,21 +160,17 @@ type NodePredicate<T extends ts.Node = ts.Node> = (node: T) => boolean
  */
 
 export function getNodeReplacer(predicate: NodePredicate, replacement: ts.Node): MappingFunction {
-
-	let replaced = false
+	let replaced = false;
 
 	return (node: ts.Node) => {
+		if (replaced && predicate(node)) return [replacement, replaced];
 
-		if (replaced && predicate(node))
-			return [replacement, replaced]
+		if (replaced || !predicate(node)) return [node, replaced];
 
-		if (replaced || !predicate(node))
-			return [node, replaced]
+		replaced = true;
 
-		replaced = true
-
-		return [node, replaced]
-	}
+		return [node, replaced];
+	};
 }
 
 /**
@@ -195,10 +179,11 @@ export function getNodeReplacer(predicate: NodePredicate, replacement: ts.Node):
  */
 
 export function getAliasedSymbol(symbol: ts.Symbol, typeChecker: ts.TypeChecker): ts.Symbol {
-
 	try {
-		return typeChecker.getAliasedSymbol(symbol)
-	} catch (_) { return symbol }
+		return typeChecker.getAliasedSymbol(symbol);
+	} catch (_) {
+		return symbol;
+	}
 }
 
 /**
@@ -206,13 +191,11 @@ export function getAliasedSymbol(symbol: ts.Symbol, typeChecker: ts.TypeChecker)
  */
 
 export function getAliasedSymbolOfNode(node: ts.Identifier, typeChecker: ts.TypeChecker): ts.Symbol | undefined {
+	const symbol = typeChecker.getSymbolAtLocation(node);
 
-	const symbol = typeChecker.getSymbolAtLocation(node)
+	if (symbol === undefined) return undefined;
 
-	if (symbol === undefined)
-		return undefined
-
-	return getAliasedSymbol(symbol, typeChecker)
+	return getAliasedSymbol(symbol, typeChecker);
 }
 
 /**
@@ -221,12 +204,11 @@ export function getAliasedSymbolOfNode(node: ts.Identifier, typeChecker: ts.Type
  */
 
 export function isSymbolOf(symbol: ts.Symbol, name: string, filePath: string): boolean {
+	if (symbol.escapedName !== name) return false;
 
-	if (symbol.escapedName !== name)
-		return false
-
-	return [symbol.valueDeclaration, ...symbol.declarations!].filter(Boolean) // TODO
-		.some(declaration => path.join(declaration!.getSourceFile().fileName) === filePath)
+	return [symbol.valueDeclaration, ...symbol.declarations!]
+		.filter(Boolean) // TODO
+		.some((declaration) => path.join(declaration!.getSourceFile().fileName) === filePath);
 }
 
 /**
@@ -234,8 +216,7 @@ export function isSymbolOf(symbol: ts.Symbol, name: string, filePath: string): b
  */
 
 export function getTypeId(type: ts.Type): number {
-
-	return (<any>type).id
+	return (<any>type).id;
 }
 
 /**
@@ -243,6 +224,5 @@ export function getTypeId(type: ts.Type): number {
  */
 
 export function mergeObjects<K extends string | number, V>(obj1: Record<K, V>, obj2: Record<K, V>): Record<K, V> {
-
-	return { ...obj1, ...obj2 }
+	return { ...obj1, ...obj2 };
 }
