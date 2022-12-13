@@ -33,7 +33,7 @@ export function separateArray<T>(array: T[], predicate: (element: T) => boolean)
  */
 
 export function isEnum(type: ts.Type): boolean {
-	return (<any>type.aliasSymbol)?.parent?.escapedName === "Enum";
+	return type.aliasSymbol?.parent?.escapedName === "Enum";
 }
 
 /**
@@ -49,7 +49,7 @@ export function isFunctionType(type: ts.Type): boolean {
  */
 
 export function isTupleType(type: ts.Type, typeChecker: ts.TypeChecker): type is ts.TupleType {
-	return (<any>typeChecker).isTupleType(type);
+	return typeChecker.isTupleType(type);
 }
 
 /**
@@ -57,7 +57,7 @@ export function isTupleType(type: ts.Type, typeChecker: ts.TypeChecker): type is
  */
 
 export function isArrayType(type: ts.Type, typeChecker: ts.TypeChecker): type is ts.GenericType {
-	return (<any>typeChecker).isArrayType(type);
+	return typeChecker.isArrayType(type);
 }
 
 /**
@@ -106,7 +106,7 @@ export function isLiteral(typeChecker: ts.TypeChecker): (type: ts.Type) => boole
 	return (type: ts.Type): boolean => type.isLiteral() || ["true", "false"].includes(typeChecker.typeToString(type));
 }
 
-export function isCustomEnum(type: ts.Type) {
+export function isCustomEnum(type: ts.Type): boolean {
 	return type.symbol?.valueDeclaration?.kind === ts.SyntaxKind.EnumDeclaration;
 }
 
@@ -216,7 +216,7 @@ export function isSymbolOf(symbol: ts.Symbol, name: string, filePath: string): b
  */
 
 export function getTypeId(type: ts.Type): number {
-	return (<any>type).id;
+	return type.id;
 }
 
 /**

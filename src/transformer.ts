@@ -260,7 +260,7 @@ function convertEnumType(type: ts.Type, typeChecker: ts.TypeChecker): ts.Express
 const tTypeDefinitions = fs.readFileSync(path.join(get_t_Path(), "lib", "t.d.ts"), "utf8");
 
 export function is_t_ImportDeclaration(program: ts.Program) {
-	return (node: ts.Node) => {
+	return (node: ts.Node): boolean => {
 		if (!ts.isImportDeclaration(node)) return false;
 
 		if (!node.importClause) return false;
